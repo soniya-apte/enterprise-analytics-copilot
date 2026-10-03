@@ -63,3 +63,67 @@ Deterministic model output (trust these numbers):
         "output_tokens": response.usage.output_tokens,
     }
     return interpretation
+
+
+from agents.anomaly import detect_anomalies, get_sales_by_region, get_sales_by_month
+
+ANOMALY_SYSTEM_PROMPT = """You are the Data Scientist Agent performing anomaly detection.
+You are given a labeled numeric series and DETERMINISTIC anomaly results computed in Python
+(z-scores and IQR bounds).
+
+IMPORTANT:
+- TRUST the provided numbers and flagged anomalies. Do NOT recompute or invent.
+- Explain what the anomalies mean for the business.
+- Distinguish genuine business anomalies (e.g., a top-performing region) from likely
+  data-quality artifacts (e.g., an incomplete final time period with near-zero value).
+- If no anomalies were flagged, say so plainly.
+
+Respond with ONLY a valid JSON object (no markdown) in this structure:
+{
+  "summary": "plain-language summary of what is unusual (or that nothing is)",
+  "anomalies_explained": [
+    {"label": "...", "interpretation": "why this is notable and whether it's real or a data artifact"}
+  ],
+  "likely_data_quality_issues": ["any flagged points that are probably data artifacts; empty if none"],
+  "recommendation": "one practical next step"
+}"""
+
+
+def analyze_anomalies(dimension: str = "region") -> dict:
+    """
+    Detect and interpret anomalies.
+    dimension: 'region' or 'month'.
+    """
+    if dimension == "region":
+        series = get_sales_by_region()
+    elif dimension == "month":
+        series = get_sales_by_month()
+    else:
+        return {"error": f"Unknown dimension: {dimension}. Use 'region' or 'month'."}
+
+    detection = detect_anomalies(series)
+    if "error" in detection:
+        return detection
+
+    user_content = f"""Anomaly detection task: find unusual values in revenue by {dimension}.
+
+Full series (label, value):
+{json.dumps(series, indent=2)}
+
+Deterministic anomaly results (trust these):
+{json.dumps(detection, indent=2)}"""
+
+    response = client.messages.create(
+        model="claude-haiku-4-5",
+        max_tokens=1024,
+        system=ANOMALY_SYSTEM_PROMPT,
+        messages=[{"role": "user", "content": user_content}],
+    )
+
+    interpretation = extract_json(response.content[0].text)
+    interpretation["_detection"] = detection
+    interpretation["_usage"] = {
+        "input_tokens": response.usage.input_tokens,
+        "output_tokens": response.usage.output_tokens,
+    }
+    return interpretation

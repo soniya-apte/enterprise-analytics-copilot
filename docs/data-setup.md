@@ -27,3 +27,21 @@ representing a fictional bicycle-parts wholesaler (~20k customers, ~500 products
 - Raw data files are intentionally NOT committed to this repo (large, freely downloadable).
 - AdventureWorks lives in its own `Adventureworks` database, kept separate from the
   `analytics_copilot` application database (raw/source layer vs. application layer).
+
+## Read-Only Role (Defense-in-Depth Security)
+
+The Data Agent connects to AdventureWorks using a read-only PostgreSQL role, so that
+even if application-layer SQL validation were bypassed, the database itself rejects writes.
+
+To create the role (run once, as the main user, against the Adventureworks DB):
+
+```sql
+CREATE ROLE copilot_readonly WITH LOGIN PASSWORD '<readonly-password>';
+GRANT CONNECT ON DATABASE "Adventureworks" TO copilot_readonly;
+GRANT USAGE ON SCHEMA sales, production, person, purchasing, humanresources TO copilot_readonly;
+GRANT SELECT ON ALL TABLES IN SCHEMA sales, production, person, purchasing, humanresources TO copilot_readonly;
+ALTER DEFAULT PRIVILEGES IN SCHEMA sales, production, person, purchasing, humanresources GRANT SELECT ON TABLES TO copilot_readonly;
+```
+
+The credentials are stored in `.env` as `AW_READONLY_USER` / `AW_READONLY_PASSWORD`,
+and `database.py` uses them for the AdventureWorks (`aw_engine`) connection.

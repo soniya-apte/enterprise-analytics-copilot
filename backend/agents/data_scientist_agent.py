@@ -127,3 +127,59 @@ Deterministic anomaly results (trust these):
         "output_tokens": response.usage.output_tokens,
     }
     return interpretation
+
+
+from agents.hypothesis import get_customer_features, correlate_with_target
+
+HYPOTHESIS_SYSTEM_PROMPT = """You are the Data Scientist Agent performing correlation / hypothesis analysis.
+You are given DETERMINISTIC correlation results (Pearson r and p-values) computed in Python with scipy,
+testing which customer features are associated with a target metric.
+
+IMPORTANT:
+- TRUST the provided correlations and p-values. Do NOT recompute or invent.
+- Interpret which factors are most strongly associated with the target and what it means for the business.
+- Note statistical nuances honestly:
+  * With a very large sample, even weak correlations can be 'statistically significant' (low p) while being
+    practically small — distinguish statistical from practical significance.
+  * Correlation is not causation.
+  * Watch for features that are mathematically components of the target (e.g., avg order value and order
+    count both feed into total spend), which inflates correlation mechanically rather than behaviorally.
+
+Respond with ONLY a valid JSON object (no markdown) in this structure:
+{
+  "summary": "plain-language summary of the key drivers",
+  "key_drivers": [
+    {"factor": "...", "interpretation": "strength, significance, and business meaning"}
+  ],
+  "statistical_caveats": ["honest caveats, e.g. correlation != causation, mechanical correlation, large-n significance"],
+  "recommendation": "one practical, actionable recommendation"
+}"""
+
+
+def analyze_drivers(target: str = "total_spend") -> dict:
+    """Engineer features, compute correlations, then have the LLM interpret them."""
+    data = get_customer_features()
+    stats_result = correlate_with_target(data, target=target)
+
+    if "error" in stats_result:
+        return stats_result
+
+    user_content = f"""Hypothesis analysis task: which factors are associated with {target}?
+
+Deterministic correlation results (trust these):
+{json.dumps(stats_result, indent=2)}"""
+
+    response = client.messages.create(
+        model="claude-haiku-4-5",
+        max_tokens=1024,
+        system=HYPOTHESIS_SYSTEM_PROMPT,
+        messages=[{"role": "user", "content": user_content}],
+    )
+
+    interpretation = extract_json(response.content[0].text)
+    interpretation["_stats"] = stats_result
+    interpretation["_usage"] = {
+        "input_tokens": response.usage.input_tokens,
+        "output_tokens": response.usage.output_tokens,
+    }
+    return interpretation

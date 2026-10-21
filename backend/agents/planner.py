@@ -17,8 +17,11 @@ You must respond with ONLY a valid JSON object (no markdown, no extra text) in t
   "steps": [
     {"step": 1, "action": "short description of what to do", "rationale": "why this step is needed"}
   ],
-  "data_needed": ["list", "of", "data/tables likely required"]
+  "data_needed": ["list", "of", "data/tables likely required"],
+  "uses_live_stream": true or false
 }
+
+Set "uses_live_stream" to true ONLY if the question is about unusual, abnormal or anomalous sales, alerts, spikes, drops, outages, or monitoring recent activity in the live sales stream. Otherwise set it to false.
 
 Keep plans focused: 3-6 steps. Be specific and practical."""
 

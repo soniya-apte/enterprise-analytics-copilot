@@ -43,9 +43,9 @@ def evaluate(question: str, sql: str, columns: list, rows: list, report: dict, m
 SQL that was executed:
 {sql}
 
-Data returned (columns + up to 20 rows):
+Data returned ({len(rows)} rows in total; showing up to 50):
 columns: {columns}
-rows: {rows[:20]}
+rows: {rows[:50]}
 
 Report / insights produced:
 {json.dumps(report, indent=2, default=str)}
@@ -60,11 +60,13 @@ Critically evaluate this analysis."""
 
     response = client.messages.create(
         model="claude-haiku-4-5",
-        max_tokens=1024,
+        max_tokens=2048,
         system=EVALUATION_SYSTEM_PROMPT,
         messages=[{"role": "user", "content": user_content}],
     )
 
+    if response.stop_reason == "max_tokens":
+        raise ValueError("Evaluator reply was cut off by max_tokens (incomplete JSON).")
     evaluation = extract_json(response.content[0].text)
     evaluation["_usage"] = {
         "input_tokens": response.usage.input_tokens,

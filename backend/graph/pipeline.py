@@ -25,12 +25,12 @@ def route_after_data(state: AnalyticsState) -> str:
         return "analytics"
     if state.get("sql_attempts", 0) < MAX_SQL_ATTEMPTS:
         return "retry"
-    return "give_up"
+    return "stream_only" if state.get("uses_live_stream") else "give_up"
 
 
 def route_after_analytics(state: AnalyticsState) -> str:
     """Only predictive and diagnostic questions need the Data Scientist."""
-    if state.get("analysis_type") in ("predictive", "diagnostic"):
+    if state.get("uses_live_stream") or state.get("analysis_type") in ("predictive", "diagnostic"):
         return "data_science"
     return "reporting"
 
@@ -50,7 +50,7 @@ def build_graph():
     g.add_edge(START, "planner")
     g.add_edge("planner", "data")
     g.add_conditional_edges("data", route_after_data,
-                            {"analytics": "analytics", "retry": "data", "give_up": "reporting"})
+                            {"analytics": "analytics", "retry": "data", "give_up": "reporting", "stream_only": "data_science"})
     g.add_conditional_edges("analytics", route_after_analytics,
                             {"data_science": "data_science", "reporting": "reporting"})
     g.add_edge("data_science", "reporting")
@@ -86,6 +86,7 @@ if __name__ == "__main__":
     r = final.get("query_result", {})
     print("\n--- RESULT ---")
     print("Analysis type:", final.get("analysis_type"))
+    print("Uses live stream:", final.get("uses_live_stream"), "| data science:", (final.get("data_science") or {}).get("kind"))
     print("SQL success:", r.get("success"), "| rows:", r.get("row_count"), "| error:", r.get("error"))
     print("SQL attempts:", final.get("sql_attempts"), "| errors:", final.get("errors"))
     if "report" in final:
@@ -95,4 +96,7 @@ if __name__ == "__main__":
         ev = final["evaluation"]
         print("Evaluation keys:", list(ev.keys()))
         print("Score:", ev.get("score", ev.get("overall_score", "(see keys)")))
+        for key in ("sql_assessment", "groundedness", "confidence_calibration"):
+            print(f"  {key}:", ev.get(key))
+        print("  Evaluator summary:", ev.get("summary"))
     print(f"LLM calls: {len(final['usage'])} | Est. cost: ${estimate_cost(final['usage']):.4f}")

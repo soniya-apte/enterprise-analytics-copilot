@@ -8,6 +8,7 @@ from agents.data_agent import generate_sql
 from agents.sql_executor import execute_sql
 from agents.analytics_agent import analyze
 from agents.data_scientist_agent import forecast_revenue, analyze_anomalies
+from agents.stream_monitor import get_stream_anomalies
 from agents.reporting_agent import generate_report
 from agents.evaluation_agent import evaluate
 
@@ -38,6 +39,7 @@ def planner_node(state: AnalyticsState) -> dict:
     return {
         "plan": plan,
         "analysis_type": plan.get("analysis_type", "descriptive"),
+        "uses_live_stream": bool(plan.get("uses_live_stream", False)),
         "usage": _record_usage(state, "planner", plan),
     }
 
@@ -94,7 +96,10 @@ def data_science_node(state: AnalyticsState) -> dict:
 
     predictive -> revenue forecast; diagnostic -> monthly anomaly detection.
     """
-    if state.get("analysis_type") == "predictive":
+    if state.get("uses_live_stream"):
+        result = get_stream_anomalies(days=30)
+        kind = "live_stream_anomalies"
+    elif state.get("analysis_type") == "predictive":
         result = forecast_revenue(periods_ahead=3)
         kind = "forecast"
     else:
@@ -116,6 +121,16 @@ def reporting_node(state: AnalyticsState) -> dict:
     }
     if state.get("data_science"):
         context["data_science"] = state["data_science"]
+        if state["data_science"].get("kind") == "live_stream_anomalies":
+            res = state["data_science"].get("result", {})
+            context["important_caveats"] = [res.get("detector_note"), res.get("data_quality_note")]
+            context["note_to_reporter"] = (
+                "For this question, the PRIMARY evidence is data_science.result: the live-stream "
+                "anomaly detector's flags. Name specific flagged dates and territories (with revenue "
+                "vs. normal baseline). Lead with the important_caveats, stated plainly. Attribute EVERY "
+                "finding to its source: 'SQL query' (solid facts) or 'live-stream detector' "
+                "(low-precision leads). Do not invent causes that are not supported by the data."
+            )
     if state.get("errors"):
         context["pipeline_errors"] = state["errors"]
     report = generate_report(state["question"], context)
@@ -128,7 +143,13 @@ def reporting_node(state: AnalyticsState) -> dict:
 def evaluation_node(state: AnalyticsState) -> dict:
     """Agent 6: critique the SQL and report, and score the answer 0-100."""
     r = state["query_result"]
-    result = evaluate(state["question"], state["sql"], r["columns"], r["rows"], state["report"], state.get("data_science"))
+    try:
+        result = evaluate(state["question"], state["sql"], r["columns"], r["rows"],
+                          state["report"], state.get("data_science"))
+    except Exception as e:   # never lose a finished report because the evaluator failed
+        errors = list(state.get("errors", [])) + [f"Evaluation failed: {e}"]
+        return {"evaluation": {"overall_score": None, "summary": f"Evaluation failed: {e}"},
+                "errors": errors}
     return {
         "evaluation": result,
         "usage": _record_usage(state, "evaluation", result),

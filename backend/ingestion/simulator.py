@@ -25,6 +25,8 @@ ANOMALY_RATE = 0.02        # about 2% of online rows that have sales get an anom
 SEED = 42                  # change this to generate a different set of anomalies
 CHANNELS = ["online", "reseller"]
 INJECT_CHANNEL = "online"  # anomalies are injected into (and detected on) this channel only
+SPIKE_RANGE = (3, 5)       # spike multiplies revenue by a factor in this range
+DROP_RANGE = (0.05, 0.2)   # drop multiplies revenue by a factor in this range
 
 TERRITORY_SQL = text('SELECT territoryid, name, "group" FROM sales.salesterritory ORDER BY territoryid')
 RANGE_SQL = text("SELECT MIN(orderdate)::date, MAX(orderdate)::date FROM sales.salesorderheader")
@@ -47,9 +49,9 @@ def maybe_inject(d, tid, channel, revenue, orders):
         return revenue, orders, None
     kind = rng.choice(["spike", "drop", "outage"])
     if kind == "spike":
-        new_rev = revenue * Decimal(str(round(rng.uniform(3, 5), 2)))
+        new_rev = revenue * Decimal(str(round(rng.uniform(*SPIKE_RANGE), 2)))
     elif kind == "drop":
-        new_rev = revenue * Decimal(str(round(rng.uniform(0.05, 0.2), 2)))
+        new_rev = revenue * Decimal(str(round(rng.uniform(*DROP_RANGE), 2)))
     else:  # outage
         new_rev, orders = Decimal("0"), 0
     return new_rev.quantize(Decimal("0.01")), orders, kind

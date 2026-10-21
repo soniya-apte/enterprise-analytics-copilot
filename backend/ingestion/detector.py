@@ -51,11 +51,15 @@ def classify(value: float, window: np.ndarray):
     return None
 
 
+MONITORED_CHANNEL = "online"   # reseller sales are bulk batch events, not a daily signal
+
+
 def detect_range(start=None, end=None, verbose=True) -> list:
     """Scan stream days in [start, end] (default: everything ingested) and save the flags."""
     df = pd.read_sql(
-        text("SELECT sale_date, territory_id, revenue FROM stream_daily_sales ORDER BY territory_id, sale_date"),
-        app_engine,
+        text("SELECT sale_date, territory_id, channel, revenue FROM stream_daily_sales "
+             "WHERE channel = :ch ORDER BY territory_id, sale_date"),
+        app_engine, params={"ch": MONITORED_CHANNEL},
     )
     if df.empty:
         print("Stream is empty - run the simulator first.")
@@ -66,7 +70,7 @@ def detect_range(start=None, end=None, verbose=True) -> list:
     end = end or df["sale_date"].max()
 
     flags = []
-    for tid, g in df.groupby("territory_id"):
+    for (tid, ch), g in df.groupby(["territory_id", "channel"]):
         dates = g["sale_date"].to_numpy()
         revs = g["revenue"].to_numpy()
         for i, d in enumerate(dates):
@@ -76,8 +80,8 @@ def detect_range(start=None, end=None, verbose=True) -> list:
             result = classify(revs[i], revs[in_window])
             if result:
                 kind, baseline, score = result
-                flags.append({"sale_date": d, "territory_id": int(tid), "detected_type": kind,
-                              "revenue": round(float(revs[i]), 2),
+                flags.append({"sale_date": d, "territory_id": int(tid), "channel": ch,
+                              "detected_type": kind, "revenue": round(float(revs[i]), 2),
                               "baseline_median": round(baseline, 2), "score": score})
 
     with app_engine.begin() as app:   # replace any earlier flags for this date range
@@ -86,12 +90,12 @@ def detect_range(start=None, end=None, verbose=True) -> list:
         if flags:
             app.execute(text("""
                 INSERT INTO detected_anomalies
-                    (sale_date, territory_id, detected_type, revenue, baseline_median, score)
-                VALUES (:sale_date, :territory_id, :detected_type, :revenue, :baseline_median, :score)
+                    (sale_date, territory_id, channel, detected_type, revenue, baseline_median, score)
+                VALUES (:sale_date, :territory_id, :channel, :detected_type, :revenue, :baseline_median, :score)
             """), flags)
 
     if verbose:
-        print(f"Scanned {start} -> {end}: {len(flags)} anomalies flagged")
+        print(f"Scanned {start} -> {end} ({MONITORED_CHANNEL}): {len(flags)} anomalies flagged")
         for f in flags:
             print(f"   {f['sale_date']}  territory {f['territory_id']:>2}  {f['detected_type']:<7} "
                   f"revenue {f['revenue']:>10}  baseline {f['baseline_median']:>10}  score {f['score']}")

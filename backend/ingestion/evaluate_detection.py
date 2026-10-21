@@ -16,9 +16,9 @@ INCOMPLETE_MONTH_START = date(2025, 6, 1)   # known data-quality issue: final mo
 
 
 def evaluate(verbose: bool = True) -> dict:
-    inj = pd.read_sql(text("SELECT sale_date, territory_id, anomaly_type FROM injected_anomalies"), app_engine)
-    det = pd.read_sql(text("SELECT sale_date, territory_id, detected_type FROM detected_anomalies"), app_engine)
-    m = inj.merge(det, on=["sale_date", "territory_id"], how="outer", indicator=True)
+    inj = pd.read_sql(text("SELECT sale_date, territory_id, channel, anomaly_type FROM injected_anomalies"), app_engine)
+    det = pd.read_sql(text("SELECT sale_date, territory_id, channel, detected_type FROM detected_anomalies"), app_engine)
+    m = inj.merge(det, on=["sale_date", "territory_id", "channel"], how="outer", indicator=True)
 
     tp = int((m["_merge"] == "both").sum())
     fp = int((m["_merge"] == "right_only").sum())

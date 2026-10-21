@@ -21,6 +21,17 @@ def _record_usage(state: AnalyticsState, agent: str, result: dict) -> list:
     return log
 
 
+def has_data(result: dict) -> bool:
+    """True only if the query succeeded AND returned at least one non-NULL value.
+
+    Note: aggregates like SUM() over zero rows return one row containing NULL,
+    so checking row_count alone is not enough.
+    """
+    if not result.get("success"):
+        return False
+    return any(v is not None for row in result.get("rows", []) for v in row)
+
+
 def planner_node(state: AnalyticsState) -> dict:
     """Agent 1: turn the question into a plan and pick the analysis type."""
     plan = create_plan(state["question"])
@@ -32,17 +43,39 @@ def planner_node(state: AnalyticsState) -> dict:
 
 
 def data_node(state: AnalyticsState) -> dict:
-    """Agent 2: generate SQL, then validate and run it (read-only)."""
-    sql_out = generate_sql(state["question"])
+    """Agent 2: generate SQL, then validate and run it (read-only).
+
+    On a retry, the previous SQL and what went wrong are sent back to the
+    model so it can correct itself (self-correction loop).
+    """
+    attempts = state.get("sql_attempts", 0)
+    feedback = None
+    prev = state.get("query_result")
+    if attempts > 0 and prev is not None:
+        problem = prev.get("error") or "The query ran but returned no data (0 rows or only NULL values)."
+        prev_sql = state.get("sql", "")
+        feedback = (f"Previous SQL:\n{prev_sql}\n\nProblem: {problem}\n"
+                    "Check table names, joins, filters and dates. "
+                    "Do NOT change what the question is asking for.")
+
+    sql_out = generate_sql(state["question"], feedback)
     usage = _record_usage(state, "data_agent", sql_out)
     sql = sql_out.get("sql", "")
     result = execute_sql(sql)
+
+    errors = list(state.get("errors", []))
+    if not result["success"]:
+        errors.append(f"SQL attempt {attempts + 1} failed: {result['error']}")
+    elif not has_data(result):
+        errors.append(f"SQL attempt {attempts + 1} returned no data (0 rows or only NULLs)")
+
     return {
         "sql": sql,
         "sql_explanation": sql_out.get("explanation", ""),
         "query_result": result,
-        "sql_attempts": state.get("sql_attempts", 0) + 1,
+        "sql_attempts": attempts + 1,
         "usage": usage,
+        "errors": errors,
     }
 
 
@@ -83,6 +116,8 @@ def reporting_node(state: AnalyticsState) -> dict:
     }
     if state.get("data_science"):
         context["data_science"] = state["data_science"]
+    if state.get("errors"):
+        context["pipeline_errors"] = state["errors"]
     report = generate_report(state["question"], context)
     return {
         "report": report,

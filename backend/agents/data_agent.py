@@ -35,14 +35,14 @@ Respond with ONLY a valid JSON object (no markdown) in this structure:
 }}"""
 
 
-def generate_sql(question: str) -> dict:
+def generate_sql(question: str, feedback: str | None = None) -> dict:
     """Take a business question and return a SQL query (not yet executed)."""
     response = client.messages.create(
         model="claude-haiku-4-5",
         max_tokens=1024,
         system=DATA_AGENT_SYSTEM_PROMPT,
         messages=[
-            {"role": "user", "content": f"Business question: {question}"}
+            {"role": "user", "content": f"Business question: {question}" + (f"\n\nYour previous attempt had a problem. Write a corrected query.\n{feedback}" if feedback else "")}
         ],
     )
 

@@ -4,6 +4,7 @@ from langgraph.graph import StateGraph, START, END
 
 from graph.state import AnalyticsState
 from graph.nodes import (
+    has_data,
     planner_node, data_node, analytics_node,
     data_science_node, reporting_node, evaluation_node,
 )
@@ -14,9 +15,17 @@ PRICE_IN, PRICE_OUT = 1.00, 5.00
 
 # ---------- Routing functions (decide which node runs next) ----------
 
+MAX_SQL_ATTEMPTS = 3
+
+
 def route_after_data(state: AnalyticsState) -> str:
-    """If the SQL ran successfully, continue; otherwise stop."""
-    return "analytics" if state["query_result"]["success"] else "end"
+    """Self-correction loop: continue if we got data, retry if not, report honestly after 3 tries."""
+    r = state["query_result"]
+    if has_data(r):
+        return "analytics"
+    if state.get("sql_attempts", 0) < MAX_SQL_ATTEMPTS:
+        return "retry"
+    return "give_up"
 
 
 def route_after_analytics(state: AnalyticsState) -> str:
@@ -41,7 +50,7 @@ def build_graph():
     g.add_edge(START, "planner")
     g.add_edge("planner", "data")
     g.add_conditional_edges("data", route_after_data,
-                            {"analytics": "analytics", "end": END})
+                            {"analytics": "analytics", "retry": "data", "give_up": "reporting"})
     g.add_conditional_edges("analytics", route_after_analytics,
                             {"data_science": "data_science", "reporting": "reporting"})
     g.add_edge("data_science", "reporting")
@@ -78,6 +87,7 @@ if __name__ == "__main__":
     print("\n--- RESULT ---")
     print("Analysis type:", final.get("analysis_type"))
     print("SQL success:", r.get("success"), "| rows:", r.get("row_count"), "| error:", r.get("error"))
+    print("SQL attempts:", final.get("sql_attempts"), "| errors:", final.get("errors"))
     if "report" in final:
         print("Report keys:", list(final["report"].keys()))
         print("Summary:", final["report"].get("executive_summary", "(no executive_summary key)"))

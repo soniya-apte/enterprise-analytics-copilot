@@ -36,7 +36,7 @@ Respond with ONLY a valid JSON object (no markdown) in this structure:
 }"""
 
 
-def evaluate(question: str, sql: str, columns: list, rows: list, report: dict) -> dict:
+def evaluate(question: str, sql: str, columns: list, rows: list, report: dict, model_results: dict | None = None) -> dict:
     """Critically evaluate the pipeline's output for a given question."""
     user_content = f"""Original question: {question}
 
@@ -51,6 +51,12 @@ Report / insights produced:
 {json.dumps(report, indent=2, default=str)}
 
 Critically evaluate this analysis."""
+    if model_results:
+        user_content += (
+            "\n\nStatistical/ML model results (computed deterministically in Python; "
+            "report claims based on these ARE grounded):\n"
+            + json.dumps(model_results, indent=2, default=str)
+        )
 
     response = client.messages.create(
         model="claude-haiku-4-5",

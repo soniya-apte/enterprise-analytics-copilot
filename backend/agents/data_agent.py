@@ -21,6 +21,11 @@ RULES:
 - Never use INSERT, UPDATE, DELETE, DROP, or any write operation. SELECT only.
 - Prefer clear, readable SQL with explicit JOINs.
 - If aggregating money, round to 2 decimals.
+- The data is HISTORICAL and ends in June 2025. NEVER filter dates relative to CURRENT_DATE or NOW().
+- For "recent", "last N months" or "latest" questions, anchor dates to the latest data:
+  (SELECT MAX(orderdate) FROM sales.salesorderheader).
+- For forecasting / "next N months" questions, return the HISTORICAL monthly series
+  (all months, ordered by month). A separate forecasting model predicts the future from it.
 
 Respond with ONLY a valid JSON object (no markdown) in this structure:
 {{

@@ -93,7 +93,7 @@ def reporting_node(state: AnalyticsState) -> dict:
 def evaluation_node(state: AnalyticsState) -> dict:
     """Agent 6: critique the SQL and report, and score the answer 0-100."""
     r = state["query_result"]
-    result = evaluate(state["question"], state["sql"], r["columns"], r["rows"], state["report"])
+    result = evaluate(state["question"], state["sql"], r["columns"], r["rows"], state["report"], state.get("data_science"))
     return {
         "evaluation": result,
         "usage": _record_usage(state, "evaluation", result),

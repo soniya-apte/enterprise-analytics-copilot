@@ -31,3 +31,16 @@ CREATE TABLE IF NOT EXISTS ingestion_state (
 );
 INSERT INTO ingestion_state (id, last_ingested_date)
 VALUES (1, NULL) ON CONFLICT (id) DO NOTHING;
+
+-- 4) Detector output: what the streaming anomaly detector flagged (compared to ground truth later).
+CREATE TABLE IF NOT EXISTS detected_anomalies (
+    sale_date       DATE          NOT NULL,
+    territory_id    INTEGER       NOT NULL,
+    detected_type   TEXT          NOT NULL,   -- spike | drop | outage
+    revenue         NUMERIC(14,2) NOT NULL,
+    baseline_median NUMERIC(14,2),            -- typical revenue in the trailing window
+    score           NUMERIC(10,2),            -- modified z-score (or activity rate for outages)
+    method          TEXT          NOT NULL DEFAULT 'rolling_robust_z',
+    detected_at     TIMESTAMPTZ   NOT NULL DEFAULT now(),
+    PRIMARY KEY (sale_date, territory_id)
+);

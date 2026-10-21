@@ -46,7 +46,7 @@ def maybe_inject(d, tid, revenue, orders):
 
 def reset():
     with app_engine.begin() as app:
-        app.execute(text("TRUNCATE stream_daily_sales, injected_anomalies RESTART IDENTITY"))
+        app.execute(text("TRUNCATE stream_daily_sales, injected_anomalies, detected_anomalies RESTART IDENTITY"))
         app.execute(text("UPDATE ingestion_state SET last_ingested_date = NULL, updated_at = now() WHERE id = 1"))
     print("Stream reset: all ingested data and ground truth cleared, watermark empty.")
 
@@ -107,11 +107,23 @@ def ingest(days: int):
         print(f"   {a['sale_date']}  territory {a['territory_id']:>2}  {a['anomaly_type']:<7} "
               f"{a['original_revenue']} -> {a['injected_revenue']}")
     print(f"Watermark is now {end}")
+    return start, end
 
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Replay AdventureWorks sales as a live stream.")
-    p.add_argument("--days", type=int, default=7, help="how many days to ingest this run")
+    p.add_argument("--days", type=int, default=7, help="how many days to ingest per batch")
     p.add_argument("--reset", action="store_true", help="clear the stream and start over")
+    p.add_argument("--detect", action="store_true", help="run the anomaly detector on each new batch")
+    p.add_argument("--all", action="store_true", help="keep ingesting batches until caught up")
     args = p.parse_args()
-    reset() if args.reset else ingest(args.days)
+    if args.reset:
+        reset()
+    else:
+        while True:
+            batch = ingest(args.days)
+            if batch and args.detect:
+                from ingestion.detector import detect_range
+                detect_range(*batch)
+            if not (args.all and batch):
+                break

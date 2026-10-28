@@ -1,0 +1,2306 @@
+[
+  {
+    "id": "q01",
+    "run": 1,
+    "difficulty": "easy",
+    "tags": [
+      "count"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT COUNT(*) AS total_orders FROM sales.salesorderheader;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.0028610000000000003
+  },
+  {
+    "id": "q02",
+    "run": 1,
+    "difficulty": "easy",
+    "tags": [
+      "revenue",
+      "time"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT EXTRACT(YEAR FROM soh.orderdate)::INT AS year, ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue FROM sales.salesorderheader soh GROUP BY EXTRACT(YEAR FROM soh.orderdate) ORDER BY year ASC;",
+        "success": true,
+        "error": null,
+        "rows": 4
+      }
+    ],
+    "cost": 0.0030139999999999998
+  },
+  {
+    "id": "q03",
+    "run": 1,
+    "difficulty": "easy",
+    "tags": [
+      "revenue",
+      "region",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT st.territoryid, st.name, ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue FROM sales.salesterritory st LEFT JOIN sales.salesorderheader soh ON st.territoryid = soh.territoryid GROUP BY st.territoryid, st.name ORDER BY total_revenue DESC;",
+        "success": true,
+        "error": null,
+        "rows": 10
+      }
+    ],
+    "cost": 0.003281
+  },
+  {
+    "id": "q04",
+    "run": 1,
+    "difficulty": "easy",
+    "tags": [
+      "count",
+      "product",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT pc.productcategoryid, pc.name AS category_name, COUNT(DISTINCT p.productid) AS product_count FROM production.productcategory pc LEFT JOIN production.productsubcategory psc ON pc.productcategoryid = psc.productcategoryid LEFT JOIN production.product p ON psc.productsubcategoryid = p.productsubcategoryid GROUP BY pc.productcategoryid, pc.name ORDER BY pc.productcategoryid;",
+        "success": true,
+        "error": null,
+        "rows": 4
+      }
+    ],
+    "cost": 0.0031060000000000003
+  },
+  {
+    "id": "q05",
+    "run": 1,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "product",
+      "ranking",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT p.productid, p.name, ROUND(SUM(sod.orderqty * sod.unitprice * (1 - sod.unitpricediscount))::numeric, 2) AS total_revenue FROM production.product p JOIN sales.salesorderdetail sod ON p.productid = sod.productid GROUP BY p.productid, p.name ORDER BY total_revenue DESC LIMIT 5;",
+        "success": true,
+        "error": null,
+        "rows": 5
+      }
+    ],
+    "cost": 0.0035240000000000002
+  },
+  {
+    "id": "q06",
+    "run": 1,
+    "difficulty": "easy",
+    "tags": [
+      "channel",
+      "ratio"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(100.0 * SUM(CASE WHEN onlineorderflag = true THEN 1 ELSE 0 END) / COUNT(*), 2) AS percentage_online_orders FROM sales.salesorderheader;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003131
+  },
+  {
+    "id": "q07",
+    "run": 1,
+    "difficulty": "easy",
+    "tags": [
+      "revenue",
+      "time",
+      "average"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT EXTRACT(YEAR FROM soh.orderdate)::INTEGER AS year, ROUND(AVG(soh.totaldue)::NUMERIC, 2) AS avg_order_value FROM sales.salesorderheader soh GROUP BY EXTRACT(YEAR FROM soh.orderdate) ORDER BY year;",
+        "success": true,
+        "error": null,
+        "rows": 4
+      }
+    ],
+    "cost": 0.0032159999999999997
+  },
+  {
+    "id": "q08",
+    "run": 1,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "time",
+      "ranking"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT DATE_TRUNC('month', soh.orderdate)::date AS month, ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue FROM sales.salesorderheader soh GROUP BY DATE_TRUNC('month', soh.orderdate) ORDER BY total_revenue DESC LIMIT 1;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.002577
+  },
+  {
+    "id": "q09",
+    "run": 1,
+    "difficulty": "easy",
+    "tags": [
+      "hr",
+      "count"
+    ],
+    "single_strict": false,
+    "single_lenient": false,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 2,
+    "attempts": [
+      {
+        "sql": "SELECT p.gender, COUNT(p.businessentityid) AS employee_count FROM humanresources.employee e JOIN person.person p ON e.businessentityid = p.businessentityid GROUP BY p.gender ORDER BY p.gender;",
+        "success": false,
+        "error": "(psycopg2.errors.UndefinedColumn) column p.gender does not exist\nLINE 1: SELECT p.gender, COUNT(p.businessentityid) AS employee_count...\n               ^\nHINT:  Perhaps you meant to reference the column \"e.gender\".\n\n[SQL: SELECT p.gender, COUNT(p.businessentityid) AS employee_count FROM humanresources.employee e JOIN person.person p ON e.businessentityid = p.businessentityid GROUP BY p.gender ORDER BY p.gender;]\n(Background on this error at: https://sqlalche.me/e/20/f405)",
+        "rows": null
+      },
+      {
+        "sql": "SELECT e.gender, COUNT(e.businessentityid) AS employee_count FROM humanresources.employee e GROUP BY e.gender ORDER BY e.gender;",
+        "success": true,
+        "error": null,
+        "rows": 2
+      }
+    ],
+    "cost": 0.005454
+  },
+  {
+    "id": "q10",
+    "run": 1,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "product",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT pc.name AS category, ROUND(SUM(sod.orderqty * sod.unitprice * (1 - sod.unitpricediscount))::numeric, 2) AS total_revenue FROM sales.salesorderdetail sod JOIN production.product p ON sod.productid = p.productid JOIN production.productsubcategory psc ON p.productsubcategoryid = psc.productsubcategoryid JOIN production.productcategory pc ON psc.productcategoryid = pc.productcategoryid GROUP BY pc.productcategoryid, pc.name ORDER BY total_revenue DESC;",
+        "success": true,
+        "error": null,
+        "rows": 4
+      }
+    ],
+    "cost": 0.003768
+  },
+  {
+    "id": "q11",
+    "run": 1,
+    "difficulty": "easy",
+    "tags": [
+      "count",
+      "region",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT st.\"group\", COUNT(DISTINCT soh.salesorderid) AS order_count FROM sales.salesorderheader soh JOIN sales.salesterritory st ON soh.territoryid = st.territoryid GROUP BY st.\"group\" ORDER BY st.\"group\"",
+        "success": true,
+        "error": null,
+        "rows": 3
+      }
+    ],
+    "cost": 0.0033079999999999997
+  },
+  {
+    "id": "q12",
+    "run": 1,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "people",
+      "ranking",
+      "join"
+    ],
+    "single_strict": false,
+    "single_lenient": true,
+    "corrected_strict": false,
+    "corrected_lenient": true,
+    "reason": "numbers match, labels differ",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT sp.businessentityid, pp.firstname, pp.lastname, ROUND(SUM(soh.totaldue)::numeric, 2) AS total_sales_revenue FROM sales.salesperson sp JOIN person.person pp ON sp.businessentityid = pp.businessentityid JOIN sales.salesorderheader soh ON sp.businessentityid = soh.salespersonid GROUP BY sp.businessentityid, pp.firstname, pp.lastname ORDER BY total_sales_revenue DESC LIMIT 5;",
+        "success": true,
+        "error": null,
+        "rows": 5
+      }
+    ],
+    "cost": 0.003464
+  },
+  {
+    "id": "q13",
+    "run": 1,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "product",
+      "time",
+      "ranking",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT pc.name, ROUND(SUM(sod.orderqty * sod.unitprice * (1 - sod.unitpricediscount))::numeric, 2) as total_revenue FROM sales.salesorderheader soh JOIN sales.salesorderdetail sod ON soh.salesorderid = sod.salesorderid JOIN production.product p ON sod.productid = p.productid JOIN production.productsubcategory psc ON p.productsubcategoryid = psc.productsubcategoryid JOIN production.productcategory pc ON psc.productcategoryid = pc.productcategoryid WHERE EXTRACT(YEAR FROM soh.orderdate) = 2024 GROUP BY pc.name ORDER BY total_revenue DESC LIMIT 1;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003772
+  },
+  {
+    "id": "q14",
+    "run": 1,
+    "difficulty": "easy",
+    "tags": [
+      "count",
+      "customer",
+      "time"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT COUNT(DISTINCT customerid) AS distinct_customers_2024 FROM sales.salesorderheader WHERE EXTRACT(YEAR FROM orderdate) = 2024;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.00253
+  },
+  {
+    "id": "q15",
+    "run": 1,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "time"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT DATE_TRUNC('month', soh.orderdate)::DATE AS month, ROUND(SUM(soh.totaldue), 2) AS total_revenue FROM sales.salesorderheader soh WHERE EXTRACT(YEAR FROM soh.orderdate) = 2024 GROUP BY DATE_TRUNC('month', soh.orderdate) ORDER BY month ASC;",
+        "success": true,
+        "error": null,
+        "rows": 12
+      }
+    ],
+    "cost": 0.002656
+  },
+  {
+    "id": "q16",
+    "run": 1,
+    "difficulty": "medium",
+    "tags": [
+      "average",
+      "orders"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(CAST(COUNT(*) AS NUMERIC) / CAST(COUNT(DISTINCT salesorderid) AS NUMERIC), 2) AS avg_line_items_per_order FROM sales.salesorderdetail;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.0034990000000000004
+  },
+  {
+    "id": "q17",
+    "run": 1,
+    "difficulty": "easy",
+    "tags": [
+      "revenue",
+      "channel"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue_online_orders FROM sales.salesorderheader soh WHERE soh.onlineorderflag = true;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003268
+  },
+  {
+    "id": "q18",
+    "run": 1,
+    "difficulty": "medium",
+    "tags": [
+      "count",
+      "region",
+      "time",
+      "ranking",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT st.territoryid, st.name, COUNT(soh.salesorderid) AS order_count FROM sales.salesterritory st JOIN sales.salesorderheader soh ON st.territoryid = soh.territoryid WHERE EXTRACT(YEAR FROM soh.orderdate) = 2023 GROUP BY st.territoryid, st.name ORDER BY order_count DESC LIMIT 3;",
+        "success": true,
+        "error": null,
+        "rows": 3
+      }
+    ],
+    "cost": 0.003455
+  },
+  {
+    "id": "q19",
+    "run": 1,
+    "difficulty": "medium",
+    "tags": [
+      "quantity",
+      "product",
+      "ranking",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT psc.productsubcategoryid, psc.name, SUM(sod.orderqty) AS total_units_sold FROM production.productsubcategory psc JOIN production.product p ON psc.productsubcategoryid = p.productsubcategoryid JOIN sales.salesorderdetail sod ON p.productid = sod.productid GROUP BY psc.productsubcategoryid, psc.name ORDER BY total_units_sold DESC LIMIT 1;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.0034339999999999996
+  },
+  {
+    "id": "q20",
+    "run": 1,
+    "difficulty": "easy",
+    "tags": [
+      "count",
+      "filter"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT COUNT(*) AS order_count FROM sales.salesorderheader WHERE totaldue > 10000;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.0029969999999999997
+  },
+  {
+    "id": "q21",
+    "run": 1,
+    "difficulty": "hard",
+    "tags": [
+      "revenue",
+      "time",
+      "growth"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(((revenue_2024 - revenue_2023) / revenue_2023 * 100)::numeric, 2) AS revenue_growth_percentage FROM (SELECT SUM(CASE WHEN EXTRACT(YEAR FROM orderdate) = 2023 THEN totaldue ELSE 0 END) AS revenue_2023, SUM(CASE WHEN EXTRACT(YEAR FROM orderdate) = 2024 THEN totaldue ELSE 0 END) AS revenue_2024 FROM sales.salesorderheader WHERE EXTRACT(YEAR FROM orderdate) IN (2023, 2024) AND status = 5) AS yearly_revenue;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003123
+  },
+  {
+    "id": "q22",
+    "run": 1,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "time",
+      "trap_recent"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue FROM sales.salesorderheader soh WHERE DATE_TRUNC('month', soh.orderdate) = (SELECT DATE_TRUNC('month', MAX(soh2.orderdate)) FROM sales.salesorderheader soh2);",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.0031850000000000003
+  },
+  {
+    "id": "q23",
+    "run": 1,
+    "difficulty": "easy",
+    "tags": [
+      "revenue",
+      "time",
+      "trap_no_data"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "no-data question",
+    "n_attempts": 3,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue_2019 FROM sales.salesorderheader soh WHERE EXTRACT(YEAR FROM soh.orderdate) = 2019;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      },
+      {
+        "sql": "SELECT ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue_2019 FROM sales.salesorderheader soh WHERE EXTRACT(YEAR FROM soh.orderdate) = 2019;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      },
+      {
+        "sql": "SELECT ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue_2019 FROM sales.salesorderheader soh WHERE EXTRACT(YEAR FROM soh.orderdate) = 2019;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.011152
+  },
+  {
+    "id": "q24",
+    "run": 1,
+    "difficulty": "hard",
+    "tags": [
+      "revenue",
+      "customer",
+      "ranking",
+      "join"
+    ],
+    "single_strict": false,
+    "single_lenient": true,
+    "corrected_strict": false,
+    "corrected_lenient": true,
+    "reason": "numbers match, labels differ",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT p.firstname, p.lastname, c.customerid, ROUND(SUM(soh.totaldue)::numeric, 2) AS total_spent FROM sales.customer c JOIN person.person p ON c.personid = p.businessentityid JOIN sales.salesorderheader soh ON c.customerid = soh.customerid WHERE p.persontype = 'IN' GROUP BY c.customerid, p.firstname, p.lastname ORDER BY total_spent DESC LIMIT 5;",
+        "success": true,
+        "error": null,
+        "rows": 5
+      }
+    ],
+    "cost": 0.0029950000000000003
+  },
+  {
+    "id": "q25",
+    "run": 1,
+    "difficulty": "hard",
+    "tags": [
+      "count",
+      "product",
+      "anti_join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT COUNT(DISTINCT p.productid) AS products_never_sold FROM production.product p LEFT JOIN sales.salesorderdetail sod ON p.productid = sod.productid WHERE sod.productid IS NULL;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003497
+  },
+  {
+    "id": "q26",
+    "run": 1,
+    "difficulty": "medium",
+    "tags": [
+      "average",
+      "time",
+      "shipping"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(AVG(EXTRACT(DAY FROM (soh.shipdate - soh.orderdate)))::numeric, 2) AS avg_days_to_ship FROM sales.salesorderheader soh WHERE soh.shipdate IS NOT NULL AND soh.orderdate IS NOT NULL",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003337
+  },
+  {
+    "id": "q27",
+    "run": 1,
+    "difficulty": "hard",
+    "tags": [
+      "revenue",
+      "region",
+      "growth",
+      "ranking",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT st.territoryid, st.name, SUM(CASE WHEN EXTRACT(YEAR FROM soh.orderdate) = 2024 THEN soh.totaldue ELSE 0 END) as revenue_2024, SUM(CASE WHEN EXTRACT(YEAR FROM soh.orderdate) = 2023 THEN soh.totaldue ELSE 0 END) as revenue_2023, SUM(CASE WHEN EXTRACT(YEAR FROM soh.orderdate) = 2024 THEN soh.totaldue ELSE 0 END) - SUM(CASE WHEN EXTRACT(YEAR FROM soh.orderdate) = 2023 THEN soh.totaldue ELSE 0 END) as revenue_increase FROM sales.salesorderheader soh JOIN sales.salesterritory st ON soh.territoryid = st.territoryid WHERE EXTRACT(YEAR FROM soh.orderdate) IN (2023, 2024) GROUP BY st.territoryid, st.name ORDER BY revenue_increase DESC LIMIT 1;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.0035989999999999998
+  },
+  {
+    "id": "q28",
+    "run": 1,
+    "difficulty": "easy",
+    "tags": [
+      "hr",
+      "count",
+      "time"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT EXTRACT(YEAR FROM he.hiredate) AS hire_year, COUNT(*) AS employee_count FROM humanresources.employee he WHERE he.hiredate IS NOT NULL GROUP BY EXTRACT(YEAR FROM he.hiredate) ORDER BY hire_year;",
+        "success": true,
+        "error": null,
+        "rows": 8
+      }
+    ],
+    "cost": 0.002545
+  },
+  {
+    "id": "q29",
+    "run": 1,
+    "difficulty": "medium",
+    "tags": [
+      "purchasing",
+      "time"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT EXTRACT(YEAR FROM poh.orderdate)::INT AS year, ROUND(SUM(poh.subtotal + poh.taxamt + poh.freight)::numeric, 2) AS total_spend FROM purchasing.purchaseorderheader poh WHERE poh.orderdate IS NOT NULL GROUP BY EXTRACT(YEAR FROM poh.orderdate) ORDER BY year;",
+        "success": true,
+        "error": null,
+        "rows": 4
+      }
+    ],
+    "cost": 0.002913
+  },
+  {
+    "id": "q30",
+    "run": 1,
+    "difficulty": "medium",
+    "tags": [
+      "count",
+      "time",
+      "ranking"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT DATE_TRUNC('month', soh.orderdate)::DATE AS month, COUNT(DISTINCT soh.salesorderid) AS order_count FROM sales.salesorderheader soh WHERE EXTRACT(YEAR FROM soh.orderdate) = 2024 GROUP BY DATE_TRUNC('month', soh.orderdate) ORDER BY order_count ASC LIMIT 1;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003358
+  },
+  {
+    "id": "q01",
+    "run": 2,
+    "difficulty": "easy",
+    "tags": [
+      "count"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT COUNT(*) AS total_orders FROM sales.salesorderheader;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.002866
+  },
+  {
+    "id": "q02",
+    "run": 2,
+    "difficulty": "easy",
+    "tags": [
+      "revenue",
+      "time"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT EXTRACT(YEAR FROM soh.orderdate)::INT AS year, ROUND(SUM(soh.totaldue), 2) AS total_revenue FROM sales.salesorderheader soh GROUP BY EXTRACT(YEAR FROM soh.orderdate) ORDER BY year;",
+        "success": true,
+        "error": null,
+        "rows": 4
+      }
+    ],
+    "cost": 0.0029939999999999997
+  },
+  {
+    "id": "q03",
+    "run": 2,
+    "difficulty": "easy",
+    "tags": [
+      "revenue",
+      "region",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT st.territoryid, st.name, ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue FROM sales.salesterritory st LEFT JOIN sales.salesorderheader soh ON st.territoryid = soh.territoryid GROUP BY st.territoryid, st.name ORDER BY total_revenue DESC;",
+        "success": true,
+        "error": null,
+        "rows": 10
+      }
+    ],
+    "cost": 0.003331
+  },
+  {
+    "id": "q04",
+    "run": 2,
+    "difficulty": "easy",
+    "tags": [
+      "count",
+      "product",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT pc.productcategoryid, pc.name AS category_name, COUNT(DISTINCT p.productid) AS product_count FROM production.productcategory pc LEFT JOIN production.productsubcategory psc ON pc.productcategoryid = psc.productcategoryid LEFT JOIN production.product p ON psc.productsubcategoryid = p.productsubcategoryid GROUP BY pc.productcategoryid, pc.name ORDER BY pc.name",
+        "success": true,
+        "error": null,
+        "rows": 4
+      }
+    ],
+    "cost": 0.0031060000000000003
+  },
+  {
+    "id": "q05",
+    "run": 2,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "product",
+      "ranking",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT p.productid, p.name, ROUND(SUM(sod.orderqty * sod.unitprice * (1 - sod.unitpricediscount))::numeric, 2) AS total_revenue FROM production.product p INNER JOIN sales.salesorderdetail sod ON p.productid = sod.productid GROUP BY p.productid, p.name ORDER BY total_revenue DESC LIMIT 5;",
+        "success": true,
+        "error": null,
+        "rows": 5
+      }
+    ],
+    "cost": 0.003534
+  },
+  {
+    "id": "q06",
+    "run": 2,
+    "difficulty": "easy",
+    "tags": [
+      "channel",
+      "ratio"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(100.0 * SUM(CASE WHEN onlineorderflag = true THEN 1 ELSE 0 END) / COUNT(*), 2) AS online_order_percentage FROM sales.salesorderheader;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003206
+  },
+  {
+    "id": "q07",
+    "run": 2,
+    "difficulty": "easy",
+    "tags": [
+      "revenue",
+      "time",
+      "average"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT EXTRACT(YEAR FROM soh.orderdate) AS year, ROUND(AVG(soh.totaldue), 2) AS avg_order_value FROM sales.salesorderheader soh GROUP BY EXTRACT(YEAR FROM soh.orderdate) ORDER BY year;",
+        "success": true,
+        "error": null,
+        "rows": 4
+      }
+    ],
+    "cost": 0.003176
+  },
+  {
+    "id": "q08",
+    "run": 2,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "time",
+      "ranking"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT DATE_TRUNC('month', soh.orderdate)::DATE AS month, ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue FROM sales.salesorderheader soh GROUP BY DATE_TRUNC('month', soh.orderdate) ORDER BY total_revenue DESC LIMIT 1;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.002552
+  },
+  {
+    "id": "q09",
+    "run": 2,
+    "difficulty": "easy",
+    "tags": [
+      "hr",
+      "count"
+    ],
+    "single_strict": false,
+    "single_lenient": false,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 2,
+    "attempts": [
+      {
+        "sql": "SELECT p.gender, COUNT(p.businessentityid) AS employee_count FROM humanresources.employee e JOIN person.person p ON e.businessentityid = p.businessentityid GROUP BY p.gender ORDER BY p.gender;",
+        "success": false,
+        "error": "(psycopg2.errors.UndefinedColumn) column p.gender does not exist\nLINE 1: SELECT p.gender, COUNT(p.businessentityid) AS employee_count...\n               ^\nHINT:  Perhaps you meant to reference the column \"e.gender\".\n\n[SQL: SELECT p.gender, COUNT(p.businessentityid) AS employee_count FROM humanresources.employee e JOIN person.person p ON e.businessentityid = p.businessentityid GROUP BY p.gender ORDER BY p.gender;]\n(Background on this error at: https://sqlalche.me/e/20/f405)",
+        "rows": null
+      },
+      {
+        "sql": "SELECT e.gender, COUNT(e.businessentityid) AS employee_count FROM humanresources.employee e GROUP BY e.gender ORDER BY e.gender;",
+        "success": true,
+        "error": null,
+        "rows": 2
+      }
+    ],
+    "cost": 0.005494
+  },
+  {
+    "id": "q10",
+    "run": 2,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "product",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT pc.name AS category, ROUND(SUM(sod.orderqty * sod.unitprice * (1 - sod.unitpricediscount))::numeric, 2) AS total_revenue FROM sales.salesorderdetail sod JOIN production.product p ON sod.productid = p.productid JOIN production.productsubcategory psc ON p.productsubcategoryid = psc.productsubcategoryid JOIN production.productcategory pc ON psc.productcategoryid = pc.productcategoryid GROUP BY pc.productcategoryid, pc.name ORDER BY total_revenue DESC;",
+        "success": true,
+        "error": null,
+        "rows": 4
+      }
+    ],
+    "cost": 0.003793
+  },
+  {
+    "id": "q11",
+    "run": 2,
+    "difficulty": "easy",
+    "tags": [
+      "count",
+      "region",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT st.\"group\", COUNT(DISTINCT soh.salesorderid) AS order_count FROM sales.salesorderheader soh JOIN sales.salesterritory st ON soh.territoryid = st.territoryid GROUP BY st.\"group\" ORDER BY st.\"group\";",
+        "success": true,
+        "error": null,
+        "rows": 3
+      }
+    ],
+    "cost": 0.0033179999999999998
+  },
+  {
+    "id": "q12",
+    "run": 2,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "people",
+      "ranking",
+      "join"
+    ],
+    "single_strict": false,
+    "single_lenient": true,
+    "corrected_strict": false,
+    "corrected_lenient": true,
+    "reason": "numbers match, labels differ",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT sp.businessentityid, pp.firstname, pp.lastname, ROUND(SUM(soh.totaldue)::numeric, 2) AS total_sales_revenue FROM sales.salesperson sp JOIN person.person pp ON sp.businessentityid = pp.businessentityid JOIN sales.salesorderheader soh ON sp.businessentityid = soh.salespersonid GROUP BY sp.businessentityid, pp.firstname, pp.lastname ORDER BY total_sales_revenue DESC LIMIT 5;",
+        "success": true,
+        "error": null,
+        "rows": 5
+      }
+    ],
+    "cost": 0.0035039999999999997
+  },
+  {
+    "id": "q13",
+    "run": 2,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "product",
+      "time",
+      "ranking",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT pc.name, ROUND(SUM(sod.orderqty * sod.unitprice * (1 - sod.unitpricediscount))::numeric, 2) AS total_revenue FROM sales.salesorderheader soh JOIN sales.salesorderdetail sod ON soh.salesorderid = sod.salesorderid JOIN production.product p ON sod.productid = p.productid JOIN production.productsubcategory psc ON p.productsubcategoryid = psc.productsubcategoryid JOIN production.productcategory pc ON psc.productcategoryid = pc.productcategoryid WHERE EXTRACT(YEAR FROM soh.orderdate) = 2024 GROUP BY pc.name ORDER BY total_revenue DESC LIMIT 1;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003897
+  },
+  {
+    "id": "q14",
+    "run": 2,
+    "difficulty": "easy",
+    "tags": [
+      "count",
+      "customer",
+      "time"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT COUNT(DISTINCT customerid) AS distinct_customers_2024 FROM sales.salesorderheader WHERE EXTRACT(YEAR FROM orderdate) = 2024;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.002535
+  },
+  {
+    "id": "q15",
+    "run": 2,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "time"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT DATE_TRUNC('month', soh.orderdate)::DATE AS month, ROUND(SUM(soh.totaldue), 2) AS total_revenue FROM sales.salesorderheader soh WHERE EXTRACT(YEAR FROM soh.orderdate) = 2024 GROUP BY DATE_TRUNC('month', soh.orderdate) ORDER BY month ASC;",
+        "success": true,
+        "error": null,
+        "rows": 12
+      }
+    ],
+    "cost": 0.002656
+  },
+  {
+    "id": "q16",
+    "run": 2,
+    "difficulty": "medium",
+    "tags": [
+      "average",
+      "orders"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(COUNT(*)::numeric / COUNT(DISTINCT salesorderid), 2) AS avg_line_items_per_order FROM sales.salesorderdetail;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003444
+  },
+  {
+    "id": "q17",
+    "run": 2,
+    "difficulty": "easy",
+    "tags": [
+      "revenue",
+      "channel"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(SUM(soh.totaldue)::numeric, 2) AS total_online_revenue FROM sales.salesorderheader soh WHERE soh.onlineorderflag = true;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.0032630000000000003
+  },
+  {
+    "id": "q18",
+    "run": 2,
+    "difficulty": "medium",
+    "tags": [
+      "count",
+      "region",
+      "time",
+      "ranking",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT st.territoryid, st.name, COUNT(soh.salesorderid) AS order_count FROM sales.salesterritory st JOIN sales.salesorderheader soh ON st.territoryid = soh.territoryid WHERE EXTRACT(YEAR FROM soh.orderdate) = 2023 GROUP BY st.territoryid, st.name ORDER BY order_count DESC LIMIT 3;",
+        "success": true,
+        "error": null,
+        "rows": 3
+      }
+    ],
+    "cost": 0.003425
+  },
+  {
+    "id": "q19",
+    "run": 2,
+    "difficulty": "medium",
+    "tags": [
+      "quantity",
+      "product",
+      "ranking",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT psc.productsubcategoryid, psc.name, SUM(sod.orderqty) AS total_units_sold FROM sales.salesorderdetail sod JOIN production.product p ON sod.productid = p.productid JOIN production.productsubcategory psc ON p.productsubcategoryid = psc.productsubcategoryid GROUP BY psc.productsubcategoryid, psc.name ORDER BY total_units_sold DESC LIMIT 1;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.0034339999999999996
+  },
+  {
+    "id": "q20",
+    "run": 2,
+    "difficulty": "easy",
+    "tags": [
+      "count",
+      "filter"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT COUNT(*) AS order_count FROM sales.salesorderheader WHERE totaldue > 10000;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.0029969999999999997
+  },
+  {
+    "id": "q21",
+    "run": 2,
+    "difficulty": "hard",
+    "tags": [
+      "revenue",
+      "time",
+      "growth"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "WITH yearly_revenue AS (SELECT EXTRACT(YEAR FROM soh.orderdate) AS year, ROUND(SUM(soh.totaldue)::NUMERIC, 2) AS total_revenue FROM sales.salesorderheader soh WHERE EXTRACT(YEAR FROM soh.orderdate) IN (2023, 2024) GROUP BY EXTRACT(YEAR FROM soh.orderdate)) SELECT ROUND(((SELECT total_revenue FROM yearly_revenue WHERE year = 2024) - (SELECT total_revenue FROM yearly_revenue WHERE year = 2023)) / (SELECT total_revenue FROM yearly_revenue WHERE year = 2023) * 100, 2) AS revenue_growth_percentage;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.0031279999999999997
+  },
+  {
+    "id": "q22",
+    "run": 2,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "time",
+      "trap_recent"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue FROM sales.salesorderheader soh WHERE DATE_TRUNC('month', soh.orderdate) = (SELECT DATE_TRUNC('month', MAX(soh2.orderdate)) FROM sales.salesorderheader soh2)",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.00328
+  },
+  {
+    "id": "q23",
+    "run": 2,
+    "difficulty": "easy",
+    "tags": [
+      "revenue",
+      "time",
+      "trap_no_data"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "no-data question",
+    "n_attempts": 3,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue_2019 FROM sales.salesorderheader soh WHERE EXTRACT(YEAR FROM soh.orderdate) = 2019;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      },
+      {
+        "sql": "SELECT ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue_2019 FROM sales.salesorderheader soh WHERE EXTRACT(YEAR FROM soh.orderdate) = 2019;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      },
+      {
+        "sql": "SELECT ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue_2019 FROM sales.salesorderheader soh WHERE EXTRACT(YEAR FROM soh.orderdate) = 2019;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.010907
+  },
+  {
+    "id": "q24",
+    "run": 2,
+    "difficulty": "hard",
+    "tags": [
+      "revenue",
+      "customer",
+      "ranking",
+      "join"
+    ],
+    "single_strict": false,
+    "single_lenient": true,
+    "corrected_strict": false,
+    "corrected_lenient": true,
+    "reason": "numbers match, labels differ",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT p.firstname, p.lastname, SUM(soh.totaldue) AS total_spent FROM sales.customer c JOIN person.person p ON c.personid = p.businessentityid JOIN sales.salesorderheader soh ON c.customerid = soh.customerid WHERE p.persontype = 'EM' OR p.persontype = 'IN' GROUP BY c.customerid, p.firstname, p.lastname ORDER BY total_spent DESC LIMIT 5;",
+        "success": true,
+        "error": null,
+        "rows": 5
+      }
+    ],
+    "cost": 0.0029500000000000004
+  },
+  {
+    "id": "q25",
+    "run": 2,
+    "difficulty": "hard",
+    "tags": [
+      "count",
+      "product",
+      "anti_join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT COUNT(DISTINCT p.productid) AS products_never_sold FROM production.product p LEFT JOIN sales.salesorderdetail sod ON p.productid = sod.productid WHERE sod.productid IS NULL;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003502
+  },
+  {
+    "id": "q26",
+    "run": 2,
+    "difficulty": "medium",
+    "tags": [
+      "average",
+      "time",
+      "shipping"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(AVG(EXTRACT(DAY FROM (soh.shipdate - soh.orderdate)))::numeric, 2) AS avg_days_to_ship FROM sales.salesorderheader soh WHERE soh.shipdate IS NOT NULL AND soh.orderdate IS NOT NULL",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003337
+  },
+  {
+    "id": "q27",
+    "run": 2,
+    "difficulty": "hard",
+    "tags": [
+      "revenue",
+      "region",
+      "growth",
+      "ranking",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT st.territoryid, st.name, SUM(CASE WHEN EXTRACT(YEAR FROM soh.orderdate) = 2024 THEN soh.totaldue ELSE 0 END) AS revenue_2024, SUM(CASE WHEN EXTRACT(YEAR FROM soh.orderdate) = 2023 THEN soh.totaldue ELSE 0 END) AS revenue_2023, SUM(CASE WHEN EXTRACT(YEAR FROM soh.orderdate) = 2024 THEN soh.totaldue ELSE 0 END) - SUM(CASE WHEN EXTRACT(YEAR FROM soh.orderdate) = 2023 THEN soh.totaldue ELSE 0 END) AS revenue_increase FROM sales.salesorderheader soh JOIN sales.salesterritory st ON soh.territoryid = st.territoryid WHERE EXTRACT(YEAR FROM soh.orderdate) IN (2023, 2024) GROUP BY st.territoryid, st.name ORDER BY revenue_increase DESC LIMIT 1;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003604
+  },
+  {
+    "id": "q28",
+    "run": 2,
+    "difficulty": "easy",
+    "tags": [
+      "hr",
+      "count",
+      "time"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT EXTRACT(YEAR FROM he.hiredate) AS hire_year, COUNT(*) AS employee_count FROM humanresources.employee he WHERE he.hiredate IS NOT NULL GROUP BY EXTRACT(YEAR FROM he.hiredate) ORDER BY hire_year ASC;",
+        "success": true,
+        "error": null,
+        "rows": 8
+      }
+    ],
+    "cost": 0.002555
+  },
+  {
+    "id": "q29",
+    "run": 2,
+    "difficulty": "medium",
+    "tags": [
+      "purchasing",
+      "time"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT EXTRACT(YEAR FROM poh.orderdate) AS year, ROUND(SUM(poh.subtotal + poh.taxamt + poh.freight)::numeric, 2) AS total_purchasing_spend FROM purchasing.purchaseorderheader poh WHERE poh.orderdate IS NOT NULL GROUP BY EXTRACT(YEAR FROM poh.orderdate) ORDER BY year ASC;",
+        "success": true,
+        "error": null,
+        "rows": 4
+      }
+    ],
+    "cost": 0.002908
+  },
+  {
+    "id": "q30",
+    "run": 2,
+    "difficulty": "medium",
+    "tags": [
+      "count",
+      "time",
+      "ranking"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT DATE_TRUNC('month', soh.orderdate)::DATE AS month, COUNT(DISTINCT soh.salesorderid) AS order_count FROM sales.salesorderheader soh WHERE EXTRACT(YEAR FROM soh.orderdate) = 2024 GROUP BY DATE_TRUNC('month', soh.orderdate) ORDER BY order_count ASC LIMIT 1;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003318
+  },
+  {
+    "id": "q01",
+    "run": 3,
+    "difficulty": "easy",
+    "tags": [
+      "count"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT COUNT(*) AS total_orders FROM sales.salesorderheader;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.0028610000000000003
+  },
+  {
+    "id": "q02",
+    "run": 3,
+    "difficulty": "easy",
+    "tags": [
+      "revenue",
+      "time"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT EXTRACT(YEAR FROM soh.orderdate)::int AS year, ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue FROM sales.salesorderheader soh GROUP BY EXTRACT(YEAR FROM soh.orderdate) ORDER BY year;",
+        "success": true,
+        "error": null,
+        "rows": 4
+      }
+    ],
+    "cost": 0.0030039999999999997
+  },
+  {
+    "id": "q03",
+    "run": 3,
+    "difficulty": "easy",
+    "tags": [
+      "revenue",
+      "region",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT st.territoryid, st.name, ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue FROM sales.salesterritory st LEFT JOIN sales.salesorderheader soh ON st.territoryid = soh.territoryid GROUP BY st.territoryid, st.name ORDER BY total_revenue DESC;",
+        "success": true,
+        "error": null,
+        "rows": 10
+      }
+    ],
+    "cost": 0.003301
+  },
+  {
+    "id": "q04",
+    "run": 3,
+    "difficulty": "easy",
+    "tags": [
+      "count",
+      "product",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT pc.productcategoryid, pc.name AS category_name, COUNT(DISTINCT p.productid) AS product_count FROM production.productcategory pc LEFT JOIN production.productsubcategory psc ON pc.productcategoryid = psc.productcategoryid LEFT JOIN production.product p ON psc.productsubcategoryid = p.productsubcategoryid GROUP BY pc.productcategoryid, pc.name ORDER BY pc.productcategoryid;",
+        "success": true,
+        "error": null,
+        "rows": 4
+      }
+    ],
+    "cost": 0.003096
+  },
+  {
+    "id": "q05",
+    "run": 3,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "product",
+      "ranking",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT p.productid, p.name, ROUND(SUM(sod.orderqty * sod.unitprice * (1 - sod.unitpricediscount))::numeric, 2) AS total_revenue FROM production.product p JOIN sales.salesorderdetail sod ON p.productid = sod.productid GROUP BY p.productid, p.name ORDER BY total_revenue DESC LIMIT 5;",
+        "success": true,
+        "error": null,
+        "rows": 5
+      }
+    ],
+    "cost": 0.003424
+  },
+  {
+    "id": "q06",
+    "run": 3,
+    "difficulty": "easy",
+    "tags": [
+      "channel",
+      "ratio"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(100.0 * SUM(CASE WHEN onlineorderflag = true THEN 1 ELSE 0 END) / COUNT(*), 2) AS online_order_percentage FROM sales.salesorderheader;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003141
+  },
+  {
+    "id": "q07",
+    "run": 3,
+    "difficulty": "easy",
+    "tags": [
+      "revenue",
+      "time",
+      "average"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT EXTRACT(YEAR FROM soh.orderdate)::INT AS year, ROUND(AVG(soh.totaldue)::numeric, 2) AS avg_order_value FROM sales.salesorderheader soh GROUP BY EXTRACT(YEAR FROM soh.orderdate) ORDER BY year;",
+        "success": true,
+        "error": null,
+        "rows": 4
+      }
+    ],
+    "cost": 0.003221
+  },
+  {
+    "id": "q08",
+    "run": 3,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "time",
+      "ranking"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT DATE_TRUNC('month', soh.orderdate)::date AS month, ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue FROM sales.salesorderheader soh GROUP BY DATE_TRUNC('month', soh.orderdate) ORDER BY total_revenue DESC LIMIT 1;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.002562
+  },
+  {
+    "id": "q09",
+    "run": 3,
+    "difficulty": "easy",
+    "tags": [
+      "hr",
+      "count"
+    ],
+    "single_strict": false,
+    "single_lenient": false,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 2,
+    "attempts": [
+      {
+        "sql": "SELECT p.gender, COUNT(p.businessentityid) AS employee_count FROM humanresources.employee e JOIN person.person p ON e.businessentityid = p.businessentityid GROUP BY p.gender ORDER BY p.gender;",
+        "success": false,
+        "error": "(psycopg2.errors.UndefinedColumn) column p.gender does not exist\nLINE 1: SELECT p.gender, COUNT(p.businessentityid) AS employee_count...\n               ^\nHINT:  Perhaps you meant to reference the column \"e.gender\".\n\n[SQL: SELECT p.gender, COUNT(p.businessentityid) AS employee_count FROM humanresources.employee e JOIN person.person p ON e.businessentityid = p.businessentityid GROUP BY p.gender ORDER BY p.gender;]\n(Background on this error at: https://sqlalche.me/e/20/f405)",
+        "rows": null
+      },
+      {
+        "sql": "SELECT e.gender, COUNT(e.businessentityid) AS employee_count FROM humanresources.employee e GROUP BY e.gender ORDER BY e.gender;",
+        "success": true,
+        "error": null,
+        "rows": 2
+      }
+    ],
+    "cost": 0.0057339999999999995
+  },
+  {
+    "id": "q10",
+    "run": 3,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "product",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT ppc.name AS product_category, ROUND(SUM(sod.orderqty * sod.unitprice * (1 - sod.unitpricediscount))::numeric, 2) AS total_revenue FROM sales.salesorderdetail sod JOIN production.product pp ON sod.productid = pp.productid JOIN production.productsubcategory pps ON pp.productsubcategoryid = pps.productsubcategoryid JOIN production.productcategory ppc ON pps.productcategoryid = ppc.productcategoryid GROUP BY ppc.name ORDER BY total_revenue DESC;",
+        "success": true,
+        "error": null,
+        "rows": 4
+      }
+    ],
+    "cost": 0.003793
+  },
+  {
+    "id": "q11",
+    "run": 3,
+    "difficulty": "easy",
+    "tags": [
+      "count",
+      "region",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT st.\"group\", COUNT(DISTINCT soh.salesorderid) AS order_count FROM sales.salesorderheader soh JOIN sales.salesterritory st ON soh.territoryid = st.territoryid GROUP BY st.\"group\" ORDER BY st.\"group\"",
+        "success": true,
+        "error": null,
+        "rows": 3
+      }
+    ],
+    "cost": 0.0031979999999999995
+  },
+  {
+    "id": "q12",
+    "run": 3,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "people",
+      "ranking",
+      "join"
+    ],
+    "single_strict": false,
+    "single_lenient": true,
+    "corrected_strict": false,
+    "corrected_lenient": true,
+    "reason": "numbers match, labels differ",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT sp.businessentityid, pp.firstname, pp.lastname, ROUND(SUM(soh.totaldue)::numeric, 2) AS total_sales_revenue FROM sales.salesperson sp JOIN person.person pp ON sp.businessentityid = pp.businessentityid JOIN sales.salesorderheader soh ON sp.businessentityid = soh.salespersonid GROUP BY sp.businessentityid, pp.firstname, pp.lastname ORDER BY total_sales_revenue DESC LIMIT 5;",
+        "success": true,
+        "error": null,
+        "rows": 5
+      }
+    ],
+    "cost": 0.003469
+  },
+  {
+    "id": "q13",
+    "run": 3,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "product",
+      "time",
+      "ranking",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT pc.name AS category, ROUND(SUM(sod.orderqty * sod.unitprice * (1 - sod.unitpricediscount))::numeric, 2) AS total_revenue FROM sales.salesorderdetail sod JOIN production.product p ON sod.productid = p.productid JOIN production.productsubcategory psc ON p.productsubcategoryid = psc.productsubcategoryid JOIN production.productcategory pc ON psc.productcategoryid = pc.productcategoryid JOIN sales.salesorderheader soh ON sod.salesorderid = soh.salesorderid WHERE EXTRACT(YEAR FROM soh.orderdate) = 2024 GROUP BY pc.name ORDER BY total_revenue DESC LIMIT 1;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003847
+  },
+  {
+    "id": "q14",
+    "run": 3,
+    "difficulty": "easy",
+    "tags": [
+      "count",
+      "customer",
+      "time"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT COUNT(DISTINCT c.customerid) AS distinct_customers_2024 FROM sales.customer c INNER JOIN sales.salesorderheader soh ON c.customerid = soh.customerid WHERE EXTRACT(YEAR FROM soh.orderdate) = 2024;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.00275
+  },
+  {
+    "id": "q15",
+    "run": 3,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "time"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT DATE_TRUNC('month', sh.orderdate)::date AS month, ROUND(SUM(sh.totaldue), 2) AS total_revenue FROM sales.salesorderheader sh WHERE EXTRACT(YEAR FROM sh.orderdate) = 2024 GROUP BY DATE_TRUNC('month', sh.orderdate) ORDER BY month ASC;",
+        "success": true,
+        "error": null,
+        "rows": 12
+      }
+    ],
+    "cost": 0.002656
+  },
+  {
+    "id": "q16",
+    "run": 3,
+    "difficulty": "medium",
+    "tags": [
+      "average",
+      "orders"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(AVG(line_count), 2) AS avg_lines_per_order FROM (SELECT salesorderid, COUNT(*) AS line_count FROM sales.salesorderdetail GROUP BY salesorderid) AS order_line_counts;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003529
+  },
+  {
+    "id": "q17",
+    "run": 3,
+    "difficulty": "easy",
+    "tags": [
+      "revenue",
+      "channel"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(SUM(totaldue)::numeric, 2) AS total_online_revenue FROM sales.salesorderheader WHERE onlineorderflag = true;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003223
+  },
+  {
+    "id": "q18",
+    "run": 3,
+    "difficulty": "medium",
+    "tags": [
+      "count",
+      "region",
+      "time",
+      "ranking",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT st.territoryid, st.name, COUNT(soh.salesorderid) AS order_count FROM sales.salesterritory st JOIN sales.salesorderheader soh ON st.territoryid = soh.territoryid WHERE EXTRACT(YEAR FROM soh.orderdate) = 2023 GROUP BY st.territoryid, st.name ORDER BY order_count DESC LIMIT 3;",
+        "success": true,
+        "error": null,
+        "rows": 3
+      }
+    ],
+    "cost": 0.003415
+  },
+  {
+    "id": "q19",
+    "run": 3,
+    "difficulty": "medium",
+    "tags": [
+      "quantity",
+      "product",
+      "ranking",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT psc.productsubcategoryid, psc.name, SUM(sod.orderqty) AS total_units_sold FROM sales.salesorderdetail sod JOIN production.product p ON sod.productid = p.productid JOIN production.productsubcategory psc ON p.productsubcategoryid = psc.productsubcategoryid GROUP BY psc.productsubcategoryid, psc.name ORDER BY total_units_sold DESC LIMIT 1;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003424
+  },
+  {
+    "id": "q20",
+    "run": 3,
+    "difficulty": "easy",
+    "tags": [
+      "count",
+      "filter"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT COUNT(*) AS order_count FROM sales.salesorderheader WHERE totaldue > 10000;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.002992
+  },
+  {
+    "id": "q21",
+    "run": 3,
+    "difficulty": "hard",
+    "tags": [
+      "revenue",
+      "time",
+      "growth"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "WITH yearly_revenue AS (SELECT EXTRACT(YEAR FROM orderdate)::int AS year, SUM(totaldue) AS total_revenue FROM sales.salesorderheader WHERE EXTRACT(YEAR FROM orderdate) IN (2023, 2024) AND orderdate IS NOT NULL GROUP BY EXTRACT(YEAR FROM orderdate)) SELECT ROUND(((MAX(CASE WHEN year = 2024 THEN total_revenue END) - MAX(CASE WHEN year = 2023 THEN total_revenue END)) / MAX(CASE WHEN year = 2023 THEN total_revenue END) * 100)::numeric, 2) AS revenue_growth_percentage FROM yearly_revenue;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003203
+  },
+  {
+    "id": "q22",
+    "run": 3,
+    "difficulty": "medium",
+    "tags": [
+      "revenue",
+      "time",
+      "trap_recent"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue FROM sales.salesorderheader soh WHERE DATE_TRUNC('month', soh.orderdate) = (SELECT DATE_TRUNC('month', MAX(soh2.orderdate)) FROM sales.salesorderheader soh2)",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003205
+  },
+  {
+    "id": "q23",
+    "run": 3,
+    "difficulty": "easy",
+    "tags": [
+      "revenue",
+      "time",
+      "trap_no_data"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "no-data question",
+    "n_attempts": 3,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue FROM sales.salesorderheader soh WHERE EXTRACT(YEAR FROM soh.orderdate) = 2019;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      },
+      {
+        "sql": "SELECT ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue FROM sales.salesorderheader soh WHERE EXTRACT(YEAR FROM soh.orderdate) = 2019;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      },
+      {
+        "sql": "SELECT ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue FROM sales.salesorderheader soh WHERE EXTRACT(YEAR FROM soh.orderdate) = 2019;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.011104
+  },
+  {
+    "id": "q24",
+    "run": 3,
+    "difficulty": "hard",
+    "tags": [
+      "revenue",
+      "customer",
+      "ranking",
+      "join"
+    ],
+    "single_strict": false,
+    "single_lenient": true,
+    "corrected_strict": false,
+    "corrected_lenient": true,
+    "reason": "numbers match, labels differ",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT p.businessentityid, p.firstname, p.lastname, ROUND(SUM(soh.totaldue)::numeric, 2) AS total_spent FROM sales.customer c JOIN person.person p ON c.personid = p.businessentityid JOIN sales.salesorderheader soh ON c.customerid = soh.customerid WHERE p.persontype = 'EM' OR p.persontype = 'IN' GROUP BY p.businessentityid, p.firstname, p.lastname ORDER BY total_spent DESC LIMIT 5;",
+        "success": true,
+        "error": null,
+        "rows": 5
+      }
+    ],
+    "cost": 0.0030550000000000004
+  },
+  {
+    "id": "q25",
+    "run": 3,
+    "difficulty": "hard",
+    "tags": [
+      "count",
+      "product",
+      "anti_join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT COUNT(DISTINCT p.productid) AS products_never_sold FROM production.product p WHERE p.productid NOT IN (SELECT DISTINCT productid FROM sales.salesorderdetail)",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003437
+  },
+  {
+    "id": "q26",
+    "run": 3,
+    "difficulty": "medium",
+    "tags": [
+      "average",
+      "time",
+      "shipping"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(AVG(EXTRACT(DAY FROM (shipdate - orderdate)))::numeric, 2) AS avg_days_to_ship FROM sales.salesorderheader WHERE shipdate IS NOT NULL AND orderdate IS NOT NULL",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.003267
+  },
+  {
+    "id": "q27",
+    "run": 3,
+    "difficulty": "hard",
+    "tags": [
+      "revenue",
+      "region",
+      "growth",
+      "ranking",
+      "join"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "WITH revenue_by_territory_year AS (\n  SELECT\n    st.territoryid,\n    st.name,\n    EXTRACT(YEAR FROM soh.orderdate)::INT AS year,\n    ROUND(SUM(soh.totaldue)::NUMERIC, 2) AS total_revenue\n  FROM sales.salesorderheader soh\n  JOIN sales.salesterritory st ON soh.territoryid = st.territoryid\n  WHERE EXTRACT(YEAR FROM soh.orderdate) IN (2023, 2024)\n  GROUP BY st.territoryid, st.name, EXTRACT(YEAR FROM soh.orderdate)\n),\nrevenue_pivot AS (\n  SELECT\n    territoryid,\n    name,\n    MAX(CASE WHEN year = 2023 THEN total_revenue ELSE 0 END) AS revenue_2023,\n    MAX(CASE WHEN year = 2024 THEN total_revenue ELSE 0 END) AS revenue_2024\n  FROM revenue_by_territory_year\n  GROUP BY territoryid, name\n)\nSELECT\n  name AS territory_name,\n  revenue_2023,\n  revenue_2024,\n  ROUND((revenue_2024 - revenue_2023)::NUMERIC, 2) AS revenue_increase\nFROM revenue_pivot\nWHERE revenue_2023 > 0 AND revenue_2024 > 0\nORDER BY revenue_increase DESC\nLIMIT 1;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.004274
+  },
+  {
+    "id": "q28",
+    "run": 3,
+    "difficulty": "easy",
+    "tags": [
+      "hr",
+      "count",
+      "time"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT EXTRACT(YEAR FROM hiredate) AS hire_year, COUNT(*) AS employee_count FROM humanresources.employee WHERE hiredate IS NOT NULL GROUP BY EXTRACT(YEAR FROM hiredate) ORDER BY hire_year;",
+        "success": true,
+        "error": null,
+        "rows": 8
+      }
+    ],
+    "cost": 0.002515
+  },
+  {
+    "id": "q29",
+    "run": 3,
+    "difficulty": "medium",
+    "tags": [
+      "purchasing",
+      "time"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT EXTRACT(YEAR FROM poh.orderdate)::INTEGER AS year, ROUND(SUM(poh.subtotal + poh.taxamt + poh.freight)::NUMERIC, 2) AS total_spend FROM purchasing.purchaseorderheader poh GROUP BY EXTRACT(YEAR FROM poh.orderdate) ORDER BY year;",
+        "success": true,
+        "error": null,
+        "rows": 4
+      }
+    ],
+    "cost": 0.0028529999999999996
+  },
+  {
+    "id": "q30",
+    "run": 3,
+    "difficulty": "medium",
+    "tags": [
+      "count",
+      "time",
+      "ranking"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT DATE_TRUNC('month', soh.orderdate)::date AS month, COUNT(DISTINCT soh.salesorderid) AS order_count FROM sales.salesorderheader soh WHERE EXTRACT(YEAR FROM soh.orderdate) = 2024 GROUP BY DATE_TRUNC('month', soh.orderdate) ORDER BY order_count ASC LIMIT 1;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.0033030000000000004
+  }
+]

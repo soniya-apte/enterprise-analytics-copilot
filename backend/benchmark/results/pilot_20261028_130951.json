@@ -1,0 +1,86 @@
+[
+  {
+    "id": "q01",
+    "run": 1,
+    "difficulty": "easy",
+    "tags": [
+      "count"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT COUNT(*) AS total_orders FROM sales.salesorderheader;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.001477
+  },
+  {
+    "id": "q02",
+    "run": 1,
+    "difficulty": "easy",
+    "tags": [
+      "revenue",
+      "time"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "match",
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "sql": "SELECT EXTRACT(YEAR FROM soh.orderdate) AS year, ROUND(SUM(soh.totaldue)::numeric, 2) AS total_revenue FROM sales.salesorderheader soh GROUP BY EXTRACT(YEAR FROM soh.orderdate) ORDER BY year;",
+        "success": true,
+        "error": null,
+        "rows": 4
+      }
+    ],
+    "cost": 0.001771
+  },
+  {
+    "id": "q23",
+    "run": 1,
+    "difficulty": "easy",
+    "tags": [
+      "revenue",
+      "time",
+      "trap_no_data"
+    ],
+    "single_strict": true,
+    "single_lenient": true,
+    "corrected_strict": true,
+    "corrected_lenient": true,
+    "reason": "no-data question",
+    "n_attempts": 3,
+    "attempts": [
+      {
+        "sql": "SELECT ROUND(SUM(totaldue)::numeric, 2) AS total_revenue_2019 FROM sales.salesorderheader WHERE EXTRACT(YEAR FROM orderdate) = 2019;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      },
+      {
+        "sql": "SELECT ROUND(SUM(totaldue)::numeric, 2) AS total_revenue_2019 FROM sales.salesorderheader WHERE EXTRACT(YEAR FROM orderdate) = 2019;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      },
+      {
+        "sql": "SELECT ROUND(SUM(totaldue)::numeric, 2) AS total_revenue_2019 FROM sales.salesorderheader WHERE EXTRACT(YEAR FROM orderdate) = 2019;",
+        "success": true,
+        "error": null,
+        "rows": 1
+      }
+    ],
+    "cost": 0.006272
+  }
+]

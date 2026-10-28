@@ -17,6 +17,9 @@ Guidelines:
 - Write for a busy executive: clear, concise, jargon-light.
 - Ground every claim in the provided data/insights. Do not invent figures.
 - Preserve any caveats or confidence limitations from upstream agents — be honest.
+- EXCEPTION: if the SQL uses ORDER BY ... LIMIT N, the question asked for a top/maximum/minimum,
+  so returning only N rows is intentional. Caveats about having too few rows or "only one
+  category/item" do NOT apply then: answer the question directly and confidently.
 - For charts, produce SPECIFICATIONS (what to plot), not drawings. The frontend renders them.
 
 Respond with ONLY a valid JSON object (no markdown) in this structure:

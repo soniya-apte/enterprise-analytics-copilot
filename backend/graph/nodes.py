@@ -2,6 +2,8 @@
 
 Pattern for every node: read from state -> call the agent -> return only new fields.
 """
+import re
+
 from graph.state import AnalyticsState
 from agents.planner import create_plan
 from agents.data_agent import generate_sql
@@ -115,10 +117,18 @@ def reporting_node(state: AnalyticsState) -> dict:
     """Agent 5: combine everything available into an executive report."""
     r = state["query_result"]
     context = {
+        "sql": state.get("sql"),   # so the report understands the query design (e.g. LIMIT 1 = top result)
         "sql_explanation": state.get("sql_explanation"),
         "data": {"columns": r["columns"], "rows": r["rows"]},
         "analytics": state.get("analysis"),
     }
+    if re.search(r"\bLIMIT\s+\d+", state.get("sql") or "", re.IGNORECASE):
+        context["query_design_note"] = (
+            "The SQL intentionally returns only the top rows (ORDER BY ... LIMIT N) because the "
+            "question asks for a ranking or a maximum/minimum. The small number of rows is BY DESIGN, "
+            "not missing or incomplete data. Report the top result(s) with appropriate confidence and "
+            "do not describe the row count as a data problem."
+        )
     if state.get("data_science"):
         context["data_science"] = state["data_science"]
         if state["data_science"].get("kind") == "live_stream_anomalies":
@@ -150,6 +160,10 @@ def evaluation_node(state: AnalyticsState) -> dict:
         errors = list(state.get("errors", [])) + [f"Evaluation failed: {e}"]
         return {"evaluation": {"overall_score": None, "summary": f"Evaluation failed: {e}"},
                 "errors": errors}
+    try:   # LLMs sometimes return the score as a string ("42"); always store an int
+        result["overall_score"] = int(float(result.get("overall_score")))
+    except (TypeError, ValueError):
+        result["overall_score"] = None
     return {
         "evaluation": result,
         "usage": _record_usage(state, "evaluation", result),

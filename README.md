@@ -11,13 +11,14 @@ A multi-agent system (LangGraph + Claude) over a 68-table PostgreSQL database, w
 
 | What was measured | Result |
 |---|---|
-| **Text-to-SQL execution accuracy** (30 questions × 3 runs, strict / lenient) | **84.4% → 93.3%** / **85.6% → 100%** after adding hybrid schema RAG |
+| **Text-to-SQL execution accuracy** (30 questions × 3 runs, strict) | Single prompt **81.1%** → engineered prompt **84.4%** → + hybrid RAG **90.0%** → + self-correction **93.3%** (100% lenient) |
 | Root cause of baseline errors (error analysis) | 12 of 14 were **schema-coverage gaps**; RAG targets exactly these |
 | Schema retrieval recall (all needed tables in context) | Pure top-6: 22/30 · **Hybrid (curated + top-4): 30/30** |
-| Self-correction loop | +0 points on the baseline, **+3.3 points with RAG** (fixes crashes, not plausible-but-wrong SQL) |
+| Self-correction loop | +5.6 on the single prompt, +0 on the engineered prompt, **+3.3 with RAG** (fixes crashes, not plausible-but-wrong SQL) |
+| Revenue forecasting (rolling-origin backtest, 36 complete months) | MAPE about **25–30%** for every method; the linear trend beats naive at 1–2 months but not a 3-month moving average |
 | Streaming anomaly detection (injected ground truth) | Recall rises from **7–12% (×2 anomalies) to 68–78% (×20)**; reliable above about ×10 |
 | Report quality (Evaluation Agent, 0–100) | Same question: 62–78 → **94** after adding computed dataset facts |
-| Cost | About **$0.015–0.03 per question** (Claude Haiku 4.5); the whole project (development, all experiments and benchmarks) used about **$1.03** of API credits |
+| Cost | About **$0.015–0.03 per question** (Claude Haiku 4.5); the whole project (development, all experiments and benchmarks) used about **$1.28** of API credits |
 
 ## Architecture
 
@@ -109,6 +110,8 @@ All experiments are reproducible from `backend/` (results are saved as JSON in `
 |---|---|---|
 | Text-to-SQL benchmark (with RAG) | `python -m benchmark.run --runs 3 --label rag` | ~$0.30 |
 | Same benchmark without RAG | `SCHEMA_RAG=off python -m benchmark.run --runs 3 --label baseline` | ~$0.20 |
+| Minimal single-prompt baseline | `SQL_PROMPT=minimal python -m benchmark.run --runs 3 --label single_prompt` | ~$0.20 |
+| Forecast backtest (MAE/RMSE/MAPE) | `python -m benchmark.forecast_backtest` | free |
 | Retrieval strategies (recall) | `python -m rag.compare_strategies` | free |
 | Anomaly detection (precision/recall/F1) | `python -m ingestion.evaluate_detection` | free |
 | Threshold sweep | `python -m ingestion.sweep_thresholds` | free |

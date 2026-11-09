@@ -22,7 +22,7 @@ A multi-agent system (LangGraph + Claude) over a 68-table PostgreSQL database, w
 ## Architecture
 
 ```mermaid
-flowchart LR
+flowchart TB
     UI["React + TypeScript + Plotly"] -->|"POST /api/ask"| API["FastAPI"]
     API --> P
 

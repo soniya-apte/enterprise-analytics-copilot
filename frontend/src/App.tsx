@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { askQuestion } from './api'
+import { askQuestion, getAnswer, getHistory } from './api'
+import HistoryPanel from './HistoryPanel'
 import Chart, { chartLayout } from './Chart'
 import DataPanel from './DataPanel'
-import type { AskResponse } from './types'
+import type { AskResponse, HistoryItem } from './types'
 
 const EXAMPLES = [
   'What was total revenue by year?',
@@ -39,6 +40,10 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [elapsed, setElapsed] = useState(0)
+  const [history, setHistory] = useState<HistoryItem[]>([])
+
+  const refreshHistory = () => getHistory(15).then(setHistory).catch(() => {})
+  useEffect(() => { refreshHistory() }, [])
 
   // Elapsed-seconds counter while a question is running
   useEffect(() => {
@@ -55,10 +60,23 @@ export default function App() {
     setResult(null)
     try {
       setResult(await askQuestion(q.trim()))
+      refreshHistory()
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function openPast(id: number) {
+    if (loading) return
+    setError(null)
+    try {
+      const r = await getAnswer(id)
+      setResult({ ...r, id })
+      setQuestion(r.question)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
     }
   }
 
@@ -70,7 +88,8 @@ export default function App() {
   const d = result?.diagnostics
   return (
     <main className="min-h-screen bg-cocoa-50">
-      <div className="mx-auto max-w-4xl px-4 py-10">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 lg:grid-cols-[1fr_18rem]">
+        <div>
         <header>
           <h1 className="text-3xl font-semibold text-cocoa-900">Enterprise Analytics Copilot</h1>
           <p className="mt-1 text-cocoa-600">Ask a business question in plain English. Six AI agents plan, query, analyze, report and self-evaluate.</p>
@@ -150,6 +169,8 @@ export default function App() {
             )}
           </article>
         )}
+        </div>
+        <HistoryPanel items={history} activeId={result?.id} onSelect={openPast} disabled={loading} />
       </div>
     </main>
   )

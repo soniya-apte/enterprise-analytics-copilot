@@ -1,1 +1,28 @@
 @import "tailwindcss";
+
+/* Theme: butter yellow background, brown text, caramel accent.
+   Change a shade here and the whole app follows. */
+@theme {
+  --color-cocoa-50:  #fff3c4;  /* butter yellow - page background */
+  --color-cocoa-100: #f9e6a8;  /* soft butter - table header, note boxes */
+  --color-cocoa-200: #e9d29a;  /* light tan - borders */
+  --color-cocoa-300: #d9bc85;  /* tan - input border, disabled button */
+  --color-cocoa-400: #b8926a;
+  --color-cocoa-500: #94704e;  /* muted brown - hints, captions */
+  --color-cocoa-600: #7a5638;  /* secondary text */
+  --color-cocoa-700: #63432a;  /* body text */
+  --color-cocoa-800: #4e331f;  /* strong text */
+  --color-cocoa-900: #3b2616;  /* headings, code background */
+
+  --color-caramel-400: #d9a066;
+  --color-caramel-500: #c98a4b;
+  --color-caramel-600: #a8692f;  /* Ask button */
+  --color-caramel-700: #8a531f;  /* Ask button hover */
+
+  --color-cream: #fffbea;        /* cards */
+}
+
+body {
+  background-color: var(--color-cocoa-50);
+  color: var(--color-cocoa-800);
+}

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import Plotly from 'plotly.js-dist-min'
 import type { Cell, ChartSpec } from './types'
+import { columnFormatter } from './format'
 
 const isNumericCol = (rows: Cell[][], i: number) =>
   rows.every((r) => typeof r[i] === 'number' || r[i] == null)
@@ -29,7 +30,8 @@ export default function Chart({ spec, columns, rows }: { spec?: ChartSpec; colum
     const el = ref.current
     if (!el) return
     const { xIdxs, yIdxs } = chartLayout(columns, rows)
-    const x = rows.map((r) => xIdxs.map((i) => String(r[i] ?? '')).join(' '))
+    const fmt = new Map(xIdxs.map((i) => [i, columnFormatter(rows.map((r) => r[i]))]))
+    const x = rows.map((r) => xIdxs.map((i) => fmt.get(i)!(r[i])).join(' '))
     const kind = spec?.type === 'pie' ? 'pie' : spec?.type === 'line' ? 'line' : 'bar'
 
     const data: Plotly.Data[] =
@@ -55,6 +57,8 @@ export default function Chart({ spec, columns, rows }: { spec?: ChartSpec; colum
         margin: { t: 48, r: 16, b: 64, l: 72 },
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#4e331f' },
+        colorway: ['#a8692f', '#c98a4b', '#7a5638', '#d9a066', '#3b2616'],
       },
       { displayModeBar: false, responsive: true },
     )

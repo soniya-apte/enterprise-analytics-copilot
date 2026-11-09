@@ -39,6 +39,14 @@ Respond with ONLY a valid JSON object (no markdown) in this structure:
 # Hybrid RAG: hand-written core context (above) + the top-k retrieved table descriptions.
 # Set the environment variable SCHEMA_RAG=off to disable retrieval (for A/B comparison).
 USE_RAG = os.getenv("SCHEMA_RAG", "on").lower() != "off"
+
+# Single-prompt baseline (for evaluation only): SQL_PROMPT=minimal sends just the question and the
+# same schema description, without the engineered rules, retrieval or retries.
+USE_MINIMAL = os.getenv("SQL_PROMPT", "full").lower() == "minimal"
+MINIMAL_PROMPT = f"""Write one PostgreSQL SELECT query that answers the question, using this database schema:
+{SCHEMA_CONTEXT}
+
+Respond with ONLY a JSON object: {{"sql": "...", "explanation": "..."}}"""
 RAG_K = 4
 
 
@@ -51,11 +59,11 @@ def _format_retrieved(docs: list) -> str:
 
 def generate_sql(question: str, feedback: str | None = None) -> dict:
     """Take a business question and return a SQL query (not yet executed)."""
-    retrieved = retrieve(question, k=RAG_K) if USE_RAG else []
+    retrieved = retrieve(question, k=RAG_K) if USE_RAG and not USE_MINIMAL else []
     response = client.messages.create(
         model="claude-haiku-4-5",
         max_tokens=1024,
-        system=DATA_AGENT_SYSTEM_PROMPT + _format_retrieved(retrieved),
+        system=MINIMAL_PROMPT if USE_MINIMAL else DATA_AGENT_SYSTEM_PROMPT + _format_retrieved(retrieved),
         messages=[
             {"role": "user", "content": f"Business question: {question}" + (f"\n\nYour previous attempt had a problem. Write a corrected query.\n{feedback}" if feedback else "")}
         ],

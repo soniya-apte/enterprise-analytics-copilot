@@ -33,8 +33,11 @@ Respond with ONLY a valid JSON object (no markdown) in this structure:
 
 def forecast_revenue(periods_ahead: int = 3) -> dict:
     """Run the deterministic forecast, then have the LLM interpret it."""
-    series = get_monthly_revenue()
+    # Use complete months only: the first and last months of the data are partial
+    # (2022-05 has 2 days; 2025-06 has ~$52K) and would distort the trend.
+    series = get_monthly_revenue()[1:-1]
     model_result = forecast_linear(series, periods_ahead=periods_ahead)
+    model_result["backtest_mape_pct"] = 28.2   # rolling-origin MAPE, see benchmark/forecast_backtest.py
 
     if "error" in model_result:
         return model_result

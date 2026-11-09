@@ -1,0 +1,13 @@
+horizon,model,mae,rmse,mape,n
+1,Linear trend (deployed model),938945.46,1169853.81,28.08,24
+1,Naive (last month),1112409.1,1340943.91,33.44,24
+1,Moving average (3 months),863670.03,1133024.99,25.02,24
+1,Seasonal naive (same month last year),1283722.89,1501607.13,32.03,24
+2,Linear trend (deployed model),925309.18,1170654.93,28.17,23
+2,Naive (last month),1160785.71,1475881.91,33.67,23
+2,Moving average (3 months),858362.03,1148327.48,24.68,23
+2,Seasonal naive (same month last year),1236652.84,1452377.94,31.19,23
+3,Linear trend (deployed model),926256.0,1175954.94,28.33,22
+3,Naive (last month),812949.56,1026031.29,22.53,22
+3,Moving average (3 months),973950.11,1227644.44,27.44,22
+3,Seasonal naive (same month last year),1203240.55,1424278.87,30.28,22

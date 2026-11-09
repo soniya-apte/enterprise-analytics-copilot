@@ -17,7 +17,7 @@ A multi-agent system (LangGraph + Claude) over a 68-table PostgreSQL database, w
 | Self-correction loop | +0 points on the baseline, **+3.3 points with RAG** (fixes crashes, not plausible-but-wrong SQL) |
 | Streaming anomaly detection (injected ground truth) | Recall rises from **7–12% (×2 anomalies) to 68–78% (×20)**; reliable above about ×10 |
 | Report quality (Evaluation Agent, 0–100) | Same question: 62–78 → **94** after adding computed dataset facts |
-| Cost | About **$0.015–0.03 per question** (Claude Haiku 4.5); the whole project was built for under **$1.20** of API usage |
+| Cost | About **$0.015–0.03 per question** (Claude Haiku 4.5); the whole project (development, all experiments and benchmarks) used about **$1.03** of API credits |
 
 ## Architecture
 

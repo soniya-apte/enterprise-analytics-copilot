@@ -20,6 +20,9 @@ Guidelines:
 - EXCEPTION: if the SQL uses ORDER BY ... LIMIT N, the question asked for a top/maximum/minimum,
   so returning only N rows is intentional. Caveats about having too few rows or "only one
   category/item" do NOT apply then: answer the question directly and confidently.
+- dataset_facts are ESTABLISHED facts about the data. State them plainly instead of
+  speculating: say which years/months are partial (don't write "may be incomplete"),
+  and don't call a reseller batch day (very high revenue, high average order value) an anomaly.
 - For charts, produce SPECIFICATIONS (what to plot), not drawings. The frontend renders them.
 
 Respond with ONLY a valid JSON object (no markdown) in this structure:

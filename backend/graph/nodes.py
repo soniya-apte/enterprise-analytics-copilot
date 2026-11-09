@@ -11,6 +11,7 @@ from agents.sql_executor import execute_sql
 from agents.analytics_agent import analyze
 from agents.data_scientist_agent import forecast_revenue, analyze_anomalies
 from agents.stream_monitor import get_stream_anomalies
+from agents.dataset_facts import get_dataset_facts
 from agents.reporting_agent import generate_report
 from agents.evaluation_agent import evaluate
 
@@ -121,6 +122,7 @@ def reporting_node(state: AnalyticsState) -> dict:
         "sql_explanation": state.get("sql_explanation"),
         "data": {"columns": r["columns"], "rows": r["rows"]},
         "analytics": state.get("analysis"),
+        "dataset_facts": get_dataset_facts(),
     }
     if re.search(r"\bLIMIT\s+\d+", state.get("sql") or "", re.IGNORECASE):
         context["query_design_note"] = (
@@ -155,7 +157,8 @@ def evaluation_node(state: AnalyticsState) -> dict:
     r = state["query_result"]
     try:
         result = evaluate(state["question"], state["sql"], r["columns"], r["rows"],
-                          state["report"], state.get("data_science"))
+                          state["report"], {"data_science": state.get("data_science"),
+                                           "dataset_facts": get_dataset_facts()})
     except Exception as e:   # never lose a finished report because the evaluator failed
         errors = list(state.get("errors", [])) + [f"Evaluation failed: {e}"]
         return {"evaluation": {"overall_score": None, "summary": f"Evaluation failed: {e}"},
